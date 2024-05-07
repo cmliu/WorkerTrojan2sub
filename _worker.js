@@ -357,7 +357,8 @@ export default {
 				path = (path[0] === '/') ? path : '/' + path;
 			}
 		}
-		
+
+		let subconverterUrl = '';
 		
 		if (!userAgent.includes('subconverter') && MamaJustKilledAMan.some(PutAGunAgainstHisHeadPulledMyTriggerNowHesDead => userAgent.includes(PutAGunAgainstHisHeadPulledMyTriggerNowHesDead)) && MamaJustKilledAMan.length > 0) {
 			//首页改成一个nginx伪装页
