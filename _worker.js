@@ -29,7 +29,7 @@ let proxyIPs = [
 	'proxyip.aliyun.fxxk.dedyn.io',
 ];
 let CMproxyIPs = [
-	//{ proxyIP: "proxyip.fxxk.dedyn.io", type: "HK" },
+	//'proxyip.aliyun.fxxk.dedyn.io:HK',
 ];
 let BotToken ='';
 let ChatID =''; 
@@ -228,13 +228,15 @@ export default {
 		subconverter = env.SUBAPI || subconverter;
 		subconfig = env.SUBCONFIG || subconfig;
 		FileName = env.SUBNAME || FileName;
+		if (env.CMPROXYIPS) CMproxyIPs = await ADD(env.CMPROXYIPS);;
+		//console.log(CMproxyIPs);
 		EndPS = env.PS || EndPS;
 		const userAgentHeader = request.headers.get('User-Agent');
 		const userAgent = userAgentHeader ? userAgentHeader.toLowerCase() : "null";
 		const url = new URL(request.url);
 		const format = url.searchParams.get('format') ? url.searchParams.get('format').toLowerCase() : "null";
 		let host = "";
-    let pw = "";
+		let pw = "";
 		//let uuid = "";
 		let path = "";
 		//let sni = "";
@@ -304,7 +306,7 @@ export default {
 		await sendMessage("#Trojan订阅", request.headers.get('CF-Connecting-IP'), `UA: ${userAgentHeader}</tg-spoiler>\n域名: ${url.hostname}\n<tg-spoiler>入口: ${url.pathname + url.search}</tg-spoiler>`);
 		} else {
 			host = url.searchParams.get('host');
-			pw = url.searchParams.get('pw');
+			pw = url.searchParams.get('pw') || url.searchParams.get('password');
 			path = url.searchParams.get('path');
 			//sni = url.searchParams.get('sni') || host;
 			epeius = url.searchParams.get('epeius') || epeius;
@@ -365,57 +367,9 @@ export default {
 				},
 			});
 		} else if ( (userAgent.includes('clash') || (format === 'clash' && !userAgent.includes('subconverter')) ) && !userAgent.includes('nekobox') && !userAgent.includes('cf-workers-sub')) {
-			const subconverterUrl = `https://${subconverter}/sub?target=clash&url=${encodeURIComponent(request.url)}&insert=false&config=${encodeURIComponent(subconfig)}&emoji=true&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true`;
-
-			try {
-				const subconverterResponse = await fetch(subconverterUrl);
-				
-				if (!subconverterResponse.ok) {
-					throw new Error(`Error fetching subconverterUrl: ${subconverterResponse.status} ${subconverterResponse.statusText}`);
-				}
-				
-				const subconverterContent = await subconverterResponse.text();
-				
-				return new Response(subconverterContent, {
-					headers: { 
-						"Content-Disposition": `attachment; filename*=utf-8''${encodeURIComponent(FileName)}; filename=${FileName}`,
-						"content-type": "text/plain; charset=utf-8",
-						"Profile-Update-Interval": `${SUBUpdateTime}`,
-						"Subscription-Userinfo": `upload=${UD}; download=${UD}; total=${total}; expire=${expire}`,
-					},
-				});
-			} catch (error) {
-				return new Response(`Error: ${error.message}`, {
-					status: 500,
-					headers: { 'content-type': 'text/plain; charset=utf-8' },
-				});
-			}
-		} else if ( (userAgent.includes('sing-box') || userAgent.includes('singbox') || (format === 'singbox' && !userAgent.includes('subconverter')) ) && !userAgent.includes('cf-workers-sub')){
-			const subconverterUrl = `https://${subconverter}/sub?target=singbox&url=${encodeURIComponent(request.url)}&insert=false&config=${encodeURIComponent(subconfig)}&emoji=true&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true`;
-
-			try {
-			const subconverterResponse = await fetch(subconverterUrl);
-			
-				if (!subconverterResponse.ok) {
-					throw new Error(`Error fetching subconverterUrl: ${subconverterResponse.status} ${subconverterResponse.statusText}`);
-				}
-				
-				const subconverterContent = await subconverterResponse.text();
-				
-				return new Response(subconverterContent, {
-					headers: { 
-						"Content-Disposition": `attachment; filename*=utf-8''${encodeURIComponent(FileName)}; filename=${FileName}`,
-						"content-type": "text/plain; charset=utf-8",
-						"Profile-Update-Interval": `${SUBUpdateTime}`,
-						"Subscription-Userinfo": `upload=${UD}; download=${UD}; total=${total}; expire=${expire}`,
-					},
-				});
-			} catch (error) {
-				return new Response(`Error: ${error.message}`, {
-					status: 500,
-					headers: { 'content-type': 'text/plain; charset=utf-8' },
-				});
-			}
+			subconverterUrl = `https://${subconverter}/sub?target=clash&url=${encodeURIComponent(request.url)}&insert=false&config=${encodeURIComponent(subconfig)}&emoji=true&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true`;
+		} else if ( (userAgent.includes('sing-box') || userAgent.includes('singbox') || (format === 'singbox' && !userAgent.includes('subconverter')) ) && !userAgent.includes('cf-workers-sub')) {
+			subconverterUrl = `https://${subconverter}/sub?target=singbox&url=${encodeURIComponent(request.url)}&insert=false&config=${encodeURIComponent(subconfig)}&emoji=true&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true`;
 		} else {
 			if(host.includes('workers.dev') || host.includes('pages.dev')) {
 				if (proxyhostsURL) {
@@ -490,8 +444,8 @@ export default {
 				
 					// 遍历CMproxyIPs数组查找匹配项
 					for (let item of CMproxyIPs) {
-						if (lowerAddressid.includes(item.type.toLowerCase())) {
-							foundProxyIP = item.proxyIP;
+						if (lowerAddressid.includes(item.split(':')[1].toLowerCase())) {
+							foundProxyIP = item.split(':')[0];
 							break; // 找到匹配项，跳出循环
 						}
 					}
@@ -532,18 +486,60 @@ export default {
 				console.log("link: " + link)
 			}
 			
-			const base64Response = btoa(combinedContent); // 重新进行 Base64 编码
+			if ((userAgent.includes('surge') || (format === 'surge' && !userAgent.includes('subconverter')) ) && !userAgent.includes('cf-workers-sub')) {
+				const TrojanLinks = combinedContent.split('\n');
+				subconverterUrl =  `https://${subconverter}/sub?target=surge&ver=4&url=${encodeURIComponent(TrojanLinks.join('|'))}&insert=false&config=${encodeURIComponent(subconfig)}&emoji=true&list=false&xudp=false&udp=false&tfo=false&expand=true&scv=true&fdn=false`;
+			} else {
+				const base64Response = btoa(combinedContent); // 重新进行 Base64 编码
 
-			const response = new Response(base64Response, {
+				const response = new Response(base64Response, {
+					headers: { 
+						//"Content-Disposition": `attachment; filename*=utf-8''${encodeURIComponent(FileName)}; filename=${FileName}`,
+						"content-type": "text/plain; charset=utf-8",
+						"Profile-Update-Interval": `${SUBUpdateTime}`,
+						"Subscription-Userinfo": `upload=${UD}; download=${UD}; total=${total}; expire=${expire}`,
+					},
+				});
+	
+				return response;
+			}
+		}
+
+		try {
+			const subconverterResponse = await fetch(subconverterUrl);
+			
+			if (!subconverterResponse.ok) {
+				throw new Error(`Error fetching subconverterUrl: ${subconverterResponse.status} ${subconverterResponse.statusText}`);
+			}
+				
+			let subconverterContent = await subconverterResponse.text();
+
+			if (( userAgent.includes('surge') || (format === 'surge' && !userAgent.includes('subconverter')) ) && !userAgent.includes('cf-workers-sub')){
+				subconverterContent = surge(subconverterContent, host);
+			}
+
+			return new Response(subconverterContent, {
 				headers: { 
-					//"Content-Disposition": `attachment; filename*=utf-8''${encodeURIComponent(FileName)}; filename=${FileName}`,
+					"Content-Disposition": `attachment; filename*=utf-8''${encodeURIComponent(FileName)}; filename=${FileName}`,
 					"content-type": "text/plain; charset=utf-8",
 					"Profile-Update-Interval": `${SUBUpdateTime}`,
 					"Subscription-Userinfo": `upload=${UD}; download=${UD}; total=${total}; expire=${expire}`,
 				},
 			});
-
-			return response;
+		} catch (error) {
+			return new Response(`Error: ${error.message}`, {
+				status: 500,
+				headers: { 'content-type': 'text/plain; charset=utf-8' },
+			});
 		}
+		
 	}
 };
+
+function surge(content, host) {
+	const 备改内容 = `skip-cert-verify=true, tfo=false, udp-relay=false`;
+	const 正确内容 = `skip-cert-verify=true, ws=true, ws-path=/?ed=2560, ws-headers=Host:"${host}", tfo=false, udp-relay=false`;
+	content = content.replace(new RegExp(备改内容, 'g'), 正确内容)
+
+	return content;
+}
