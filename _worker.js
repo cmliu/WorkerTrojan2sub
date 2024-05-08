@@ -239,7 +239,7 @@ export default {
 		let pw = "";
 		//let uuid = "";
 		let path = "";
-		//let sni = "";
+		let sni = "";
 		let UD = Math.floor(((timestamp - Date.now())/timestamp * 99 * 1099511627776 * 1024)/2);
 		if (env.UA) MamaJustKilledAMan = MamaJustKilledAMan.concat(await ADD(env.UA));
 		total = total * 1099511627776 * 1024;
@@ -274,7 +274,7 @@ export default {
 			}
 			pw = env.PASSWORD || "null";
 			path = env.PATH || "/?ed=2560";
-			//sni = env.SNI || host;
+			sni = env.SNI || host;
 			epeius = env.ED || epeius;
 			RproxyIP = env.RPROXYIP || RproxyIP;
 
@@ -308,7 +308,7 @@ export default {
 			host = url.searchParams.get('host');
 			pw = url.searchParams.get('pw') || url.searchParams.get('password');
 			path = url.searchParams.get('path');
-			//sni = url.searchParams.get('sni') || host;
+			sni = url.searchParams.get('sni') || host;
 			epeius = url.searchParams.get('epeius') || epeius;
 			RproxyIP = url.searchParams.get('proxyip') || RproxyIP;
 			
@@ -468,14 +468,14 @@ export default {
 					最终路径 = `/${host}${path}?ed=2560`;
 					伪装域名 = proxyhosts[Math.floor(Math.random() * proxyhosts.length)];
 					节点备注 = `${EndPS} 已启用临时域名中转服务，请尽快绑定自定义域！`;
-					//sni = 伪装域名;
+					sni = 伪装域名;
 				}
 
 				let 密码 = pw;
 				if (!userAgent.includes('subconverter')){
 					密码 = encodeURIComponent(pw);
 				}
-				const trojanLink = `trojan://${密码}@${address}:${port}?security=tls&type=ws&host=${伪装域名}&path=${encodeURIComponent(最终路径)}#${encodeURIComponent(addressid + 节点备注)}`;
+				const trojanLink = `trojan://${密码}@${address}:${port}?security=tls&sni=${sni}&type=ws&host=${伪装域名}&path=${encodeURIComponent(最终路径)}#${encodeURIComponent(addressid + 节点备注)}`;
 
 				return trojanLink;
 			}).join('\n');
