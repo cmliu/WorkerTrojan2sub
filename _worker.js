@@ -475,7 +475,7 @@ export default {
 				if (!userAgent.includes('subconverter')){
 					密码 = encodeURIComponent(pw);
 				}
-				const trojanLink = `trojan://${密码}@${address}:${port}?security=tls&sni=${sni}&type=ws&host=${伪装域名}&path=${encodeURIComponent(最终路径)}#${encodeURIComponent(addressid + 节点备注)}`;
+				const trojanLink = `trojan://${密码}@${address}:${port}?security=tls&sni=${sni}&fp=randomized&type=ws&host=${伪装域名}&path=${encodeURIComponent(最终路径)}#${encodeURIComponent(addressid + 节点备注)}`;
 
 				return trojanLink;
 			}).join('\n');
