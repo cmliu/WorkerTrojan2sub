@@ -516,7 +516,7 @@ export default {
 			let subconverterContent = await subconverterResponse.text();
 
 			if (( userAgent.includes('surge') || (format === 'surge' && !userAgent.includes('subconverter')) ) && !userAgent.includes('cf-workers-sub')){
-				subconverterContent = surge(subconverterContent, host);
+				subconverterContent = surge(subconverterContent, host, url);
 			}
 
 			return new Response(subconverterContent, {
@@ -537,10 +537,10 @@ export default {
 	}
 };
 
-function surge(content, host) {
+function surge(content, host, url) {
 	const 备改内容 = `skip-cert-verify=true, tfo=false, udp-relay=false`;
 	const 正确内容 = `skip-cert-verify=true, ws=true, ws-path=/?ed=2560, ws-headers=Host:"${host}", tfo=false, udp-relay=false`;
 	content = content.replace(new RegExp(备改内容, 'g'), 正确内容)
-
+	content = `#!MANAGED-CONFIG ${url.href} interval=86400 strict=false` + content.substring(content.indexOf('\n'));
 	return content;
 }
