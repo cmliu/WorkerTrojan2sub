@@ -495,7 +495,7 @@ export default {
 
 				const response = new Response(base64Response, {
 					headers: { 
-						//"Content-Disposition": `attachment; filename*=utf-8''${encodeURIComponent(FileName)}; filename=${FileName}`,
+						"Content-Disposition": `attachment; filename*=utf-8''${encodeURIComponent(FileName)}; filename=${FileName}`,
 						"content-type": "text/plain; charset=utf-8",
 						"Profile-Update-Interval": `${SUBUpdateTime}`,
 						"Subscription-Userinfo": `upload=${UD}; download=${UD}; total=${total}; expire=${expire}`,
@@ -516,7 +516,7 @@ export default {
 			let subconverterContent = await subconverterResponse.text();
 
 			if (( userAgent.includes('surge') || (format === 'surge' && !userAgent.includes('subconverter')) ) && !userAgent.includes('cf-workers-sub')){
-				subconverterContent = surge(subconverterContent, host, url);
+				subconverterContent = surge(subconverterContent, url);
 			}
 
 			return new Response(subconverterContent, {
@@ -537,10 +537,26 @@ export default {
 	}
 };
 
-function surge(content, host, url) {
-	const 备改内容 = `skip-cert-verify=true, tfo=false, udp-relay=false`;
-	const 正确内容 = `skip-cert-verify=true, ws=true, ws-path=/?ed=2560, ws-headers=Host:"${host}", tfo=false, udp-relay=false`;
-	content = content.replace(new RegExp(备改内容, 'g'), 正确内容)
-	content = `#!MANAGED-CONFIG ${url.href} interval=86400 strict=false` + content.substring(content.indexOf('\n'));
-	return content;
+function surge(content, url) {
+	let 每行内容;
+	if (content.includes('\r\n')){
+		每行内容 = content.split('\r\n');
+	} else {
+		每行内容 = content.split('\n');
+	}
+
+	let 输出内容 = "";
+	for (let x of 每行内容) {
+		if (x.includes('= trojan,')) {
+			const host = x.split("sni=")[1].split(",")[0];
+			const 备改内容 = `skip-cert-verify=true, tfo=false, udp-relay=false`;
+			const 正确内容 = `skip-cert-verify=true, ws=true, ws-path=/?ed=2560, ws-headers=Host:"${host}", tfo=false, udp-relay=false`;
+			输出内容 += x.replace(new RegExp(备改内容, 'g'), 正确内容).replace("[", "").replace("]", "") + '\n';
+		} else {
+			输出内容 += x + '\n';
+		}
+	}
+
+	输出内容 = `#!MANAGED-CONFIG ${url.href} interval=86400 strict=false` + 输出内容.substring(输出内容.indexOf('\n'));
+	return 输出内容;
 }
