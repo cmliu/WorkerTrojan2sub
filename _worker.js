@@ -286,23 +286,6 @@ export default {
 				EndPS += ` 订阅器内置节点 ${空字段} 未设置！！！`;
 			}
 
-			const hasSos = url.searchParams.has('sos');
-			if (hasSos) {
-				const hy2Url = "https://hy2sub.pages.dev";
-				try {
-					const subconverterResponse = await fetch(hy2Url);
-	
-					if (!subconverterResponse.ok) {
-						throw new Error(`Error fetching lzUrl: ${subconverterResponse.status} ${subconverterResponse.statusText}`);
-					}
-	
-					const base64Text = await subconverterResponse.text();
-					link += '\n' + atob(base64Text); // 进行 Base64 解码
-	
-				} catch (error) {
-					// 错误处理
-				}	
-			}
 		await sendMessage("#Trojan订阅", request.headers.get('CF-Connecting-IP'), `UA: ${userAgentHeader}</tg-spoiler>\n域名: ${url.hostname}\n<tg-spoiler>入口: ${url.pathname + url.search}</tg-spoiler>`);
 		} else {
 			host = url.searchParams.get('host');
